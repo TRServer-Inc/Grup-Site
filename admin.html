@@ -8,7 +8,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: #18181b; color: #fff; padding: 20px; }
         
-        /* Şifre Giriş Ekranı Stilleri */
         #login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -28,7 +27,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        /* Panel İçerik Stilleri */
         .box { max-width: 600px; margin: 0 auto; background: #27272a; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #ef4444; }
         input, textarea, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #3f3f46; background: #09090b; color: #fff; }
@@ -39,7 +37,6 @@
 </head>
 <body>
 
-    <!-- ŞİFRE GİRİŞ PENCERESİ -->
     <div id="login-overlay">
         <div class="login-box">
             <h2>🔒 Admin Girişi</h2>
@@ -50,7 +47,6 @@
         </div>
     </div>
 
-    <!-- ADMIN PANEL İÇERİĞİ -->
     <div id="admin-content" class="hidden">
         <div class="box">
             <h2>⚙️ GitHub Ayarları</h2>
@@ -69,14 +65,14 @@
         <div class="box">
             <h2>📰 Web Sitesine Haber Ekle</h2>
             <input type="text" id="news-title" placeholder="Haber Başlığı">
+            <input type="text" id="news-image" placeholder="Görsel URL'si (Opsiyonel - örn: https://site.com/resim.jpg)">
             <textarea id="news-content" rows="4" placeholder="Haber Detayı..."></textarea>
             <button onclick="addNews()">Haberi Yayınla</button>
         </div>
     </div>
 
     <script>
-        // ADMIN ŞİFRENİ BURAYA YAZ
-        const ADMIN_PASSWORD = "9823898238"; // istediğin şifre ile değiştir
+        const ADMIN_PASSWORD = "1234"; // şifreni buraya yaz
 
         function checkPassword() {
             const input = document.getElementById('admin-pass-input').value;
@@ -91,11 +87,8 @@
             }
         }
 
-        // Enter tuşuna basınca giriş yapma desteği
         document.getElementById('admin-pass-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
+            if (e.key === 'Enter') checkPassword();
         });
 
         function loadSettings() {
@@ -169,12 +162,14 @@
 
         function addNews() {
             const title = document.getElementById('news-title').value;
+            const imageUrl = document.getElementById('news-image').value;
             const content = document.getElementById('news-content').value;
             if(!title || !content) return;
 
             updateGithubFile(json => {
                 json.news.push({
                     title: title,
+                    image: imageUrl || "",
                     content: content,
                     date: new Date().toLocaleString('tr-TR')
                 });
@@ -182,6 +177,7 @@
             });
             
             document.getElementById('news-title').value = '';
+            document.getElementById('news-image').value = '';
             document.getElementById('news-content').value = '';
         }
     </script>
