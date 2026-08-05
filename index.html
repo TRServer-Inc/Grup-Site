@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grup Haber Merkezi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
+        header { text-align: center; padding: 20px 0; border-bottom: 2px solid #334155; margin-bottom: 30px; }
+        header h1 { color: #ef4444; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .news-card { background-color: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #ef4444; }
+        .news-card h2 { color: #f1f5f9; margin-bottom: 10px; }
+        .news-card p { color: #cbd5e1; line-height: 1.6; }
+        .news-card .date { font-size: 0.8rem; color: #64748b; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚨 GRUP HABER AJANSI 🚨</h1>
+            <p>grubun tek tarafsız (veya tamamen taraflı) bilgi kaynağı</p>
+        </header>
+
+        <div id="news-list">
+            <p style="text-align: center; color: #64748b;">haberler yükleniyor...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // firebase konfigürasyonunu buraya yapıştıracaksın
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const newsList = document.getElementById('news-list');
+        const newsRef = ref(db, 'news');
+
+        onValue(newsRef, (snapshot) => {
+            const data = snapshot.val();
+            newsList.innerHTML = '';
+            if (data) {
+                Object.values(data).reverse().forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card';
+                    card.innerHTML = `
+                        <h2>${item.title}</h2>
+                        <p>${item.content}</p>
+                        <div class="date">${item.date}</div>
+                    `;
+                    newsList.appendChild(card);
+                });
+            } else {
+                newsList.innerHTML = '<p style="text-align: center; color: #64748b;">henüz haber yok.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
