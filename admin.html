@@ -2,7 +2,6 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haber Admin Paneli</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
@@ -16,60 +15,111 @@
 </head>
 <body>
     <div class="box">
+        <h2>⚙️ GitHub Ayarları</h2>
+        <input type="text" id="gh-username" placeholder="GitHub Kullanıcı Adın">
+        <input type="text" id="gh-repo" placeholder="Repository Adı (Örn: grup-haber)">
+        <input type="password" id="gh-token" placeholder="GitHub Personal Token (ghp_...)">
+        <button onclick="saveSettings()">Ayarları Kaydet</button>
+    </div>
+
+    <div class="box">
         <h2>📺 OBS Son Dakika Bandı Değiştir</h2>
         <input type="text" id="ticker-text" placeholder="OBS'de kayacak alt yazı metni...">
-        <button id="send-ticker">OBS Bandını Güncelle</button>
+        <button onclick="updateTicker()">OBS Bandını Güncelle</button>
     </div>
 
     <div class="box">
         <h2>📰 Web Sitesine Haber Ekle</h2>
         <input type="text" id="news-title" placeholder="Haber Başlığı">
         <textarea id="news-content" rows="4" placeholder="Haber Detayı..."></textarea>
-        <button id="send-news">Haberi Yayınla</button>
+        <button onclick="addNews()">Haberi Yayınla</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script>
+        // Ayarları tarayıcı hafızasında saklar
+        document.getElementById('gh-username').value = localStorage.getItem('gh_user') || '';
+        document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
+        document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        function saveSettings() {
+            localStorage.setItem('gh_user', document.getElementById('gh-username').value);
+            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
+            localStorage.setItem('gh_token', document.getElementById('gh-token').value);
+            alert('ayarlar kaydedildi!');
+        }
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        async function updateGithubFile(updateFn) {
+            const user = localStorage.getItem('gh_user');
+            const repo = localStorage.getItem('gh_repo');
+            const token = localStorage.getItem('gh_token');
 
-        // obs alt yazı güncelleme
-        document.getElementById('send-ticker').addEventListener('click', () => {
+            if (!user || !repo || !token) {
+                alert('önce github ayarlarını doldurup kaydet!');
+                return;
+            }
+
+            const url = `https://api.github.com/repos/${user}/${repo}/contents/data.json`;
+            
+            // 1. mevcut data.json'ı ve sha kodunu al
+            const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            const fileData = await getRes.json();
+            
+            // base64 decode
+            const contentDecoded = decodeURIComponent(escape(atob(fileData.content)));
+            let json = JSON.parse(contentDecoded);
+
+            // 2. veriyi güncelle
+            json = updateFn(json);
+
+            // 3. tekrar encode edip github'a pushla
+            const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(json, null, 2))));
+
+            const putRes = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'data.json güncellendi',
+                    content: updatedContent,
+                    sha: fileData.sha
+                })
+            });
+
+            if (putRes.ok) {
+                alert('başarıyla güncellendi!');
+            } else {
+                alert('hata oluştu, token veya repo bilgilerini kontrol et.');
+            }
+        }
+
+        function updateTicker() {
             const text = document.getElementById('ticker-text').value;
             if(!text) return;
-            set(ref(db, 'obs_ticker'), { text: text });
-            alert('obs bandı güncellendi!');
-        });
+            updateGithubFile(json => {
+                json.obs_ticker = text;
+                return json;
+            });
+        }
 
-        // web sitesine haber ekleme
-        document.getElementById('send-news').addEventListener('click', () => {
+        function addNews() {
             const title = document.getElementById('news-title').value;
             const content = document.getElementById('news-content').value;
             if(!title || !content) return;
 
-            const newNewsRef = push(ref(db, 'news'));
-            set(newNewsRef, {
-                title: title,
-                content: content,
-                date: new Date().toLocaleString('tr-TR')
+            updateGithubFile(json => {
+                json.news.push({
+                    title: title,
+                    content: content,
+                    date: new Date().toLocaleString('tr-TR')
+                });
+                return json;
             });
             
             document.getElementById('news-title').value = '';
             document.getElementById('news-content').value = '';
-            alert('haber yayınlandı!');
-        });
+        }
     </script>
 </body>
 </html>
