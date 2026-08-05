@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haber Admin Paneli</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #18181b; color: #fff; padding: 20px; }
+        .box { max-width: 600px; margin: 0 auto; background: #27272a; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        h2 { margin-bottom: 15px; color: #ef4444; }
+        input, textarea, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #3f3f46; background: #09090b; color: #fff; }
+        button { background: #ef4444; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>📺 OBS Son Dakika Bandı Değiştir</h2>
+        <input type="text" id="ticker-text" placeholder="OBS'de kayacak alt yazı metni...">
+        <button id="send-ticker">OBS Bandını Güncelle</button>
+    </div>
+
+    <div class="box">
+        <h2>📰 Web Sitesine Haber Ekle</h2>
+        <input type="text" id="news-title" placeholder="Haber Başlığı">
+        <textarea id="news-content" rows="4" placeholder="Haber Detayı..."></textarea>
+        <button id="send-news">Haberi Yayınla</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // obs alt yazı güncelleme
+        document.getElementById('send-ticker').addEventListener('click', () => {
+            const text = document.getElementById('ticker-text').value;
+            if(!text) return;
+            set(ref(db, 'obs_ticker'), { text: text });
+            alert('obs bandı güncellendi!');
+        });
+
+        // web sitesine haber ekleme
+        document.getElementById('send-news').addEventListener('click', () => {
+            const title = document.getElementById('news-title').value;
+            const content = document.getElementById('news-content').value;
+            if(!title || !content) return;
+
+            const newNewsRef = push(ref(db, 'news'));
+            set(newNewsRef, {
+                title: title,
+                content: content,
+                date: new Date().toLocaleString('tr-TR')
+            });
+            
+            document.getElementById('news-title').value = '';
+            document.getElementById('news-content').value = '';
+            alert('haber yayınlandı!');
+        });
+    </script>
+</body>
+</html>
