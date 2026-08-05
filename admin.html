@@ -37,16 +37,17 @@
 </head>
 <body>
 
+    <!-- ŞİFRE GİRİŞ PENCERESİ -->
     <div id="login-overlay">
         <div class="login-box">
             <h2>🔒 Admin Girişi</h2>
             <p style="margin-bottom: 15px; color: #a1a1aa; font-size: 0.9rem;">devam etmek için şifreyi girin</p>
-            <input type="password" id="admin-pass-input" placeholder="Şifreniz...">
-            <button onclick="checkPassword()">Giriş Yap</button>
+            <input type="password" id="admin-pass-input" placeholder="Şifreniz..." oninput="checkPasswordAuto()">
             <p id="error-msg" style="color: #ef4444; margin-top: 10px; font-size: 0.85rem;" class="hidden">şifre yanlış!</p>
         </div>
     </div>
 
+    <!-- ADMIN PANEL İÇERİĞİ -->
     <div id="admin-content" class="hidden">
         <div class="box">
             <h2>⚙️ GitHub Ayarları</h2>
@@ -72,24 +73,27 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = "9823898238"; // şifreni buraya yaz
+        const ADMIN_PASSWORD = "9823898238";
 
-        function checkPassword() {
+        // Her tuşa basıldığında (yazı değiştikçe) otomatik kontrol eder
+        function checkPasswordAuto() {
             const input = document.getElementById('admin-pass-input').value;
             const errorMsg = document.getElementById('error-msg');
             
+            // Şifre tam eşleştiği an açar
             if (input === ADMIN_PASSWORD) {
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('admin-content').classList.remove('hidden');
                 loadSettings();
             } else {
-                errorMsg.classList.remove('hidden');
+                // Şifre uzunluğu ulaştı ama yanlışsa hata gösterir
+                if (input.length >= ADMIN_PASSWORD.length) {
+                    errorMsg.classList.remove('hidden');
+                } else {
+                    errorMsg.classList.add('hidden');
+                }
             }
         }
-
-        document.getElementById('admin-pass-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkPassword();
-        });
 
         function loadSettings() {
             document.getElementById('gh-username').value = localStorage.getItem('gh_user') || '';
