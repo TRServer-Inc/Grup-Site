@@ -10,8 +10,9 @@
         header { text-align: center; padding: 20px 0; border-bottom: 2px solid #334155; margin-bottom: 30px; }
         header h1 { color: #ef4444; font-size: 2.5rem; letter-spacing: 2px; }
         .container { max-width: 900px; margin: 0 auto; }
-        .news-card { background-color: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #ef4444; }
-        .news-card h2 { color: #f1f5f9; margin-bottom: 10px; }
+        .news-card { background-color: #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #ef4444; overflow: hidden; }
+        .news-card h2 { color: #f1f5f9; margin-bottom: 15px; }
+        .news-card img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 6px; margin-bottom: 15px; }
         .news-card p { color: #cbd5e1; line-height: 1.6; }
         .news-card .date { font-size: 0.8rem; color: #64748b; margin-top: 15px; }
     </style>
@@ -28,7 +29,6 @@
     <script>
         async function loadNews() {
             try {
-                // cache engellemek için timestamp ekledik
                 const res = await fetch('data.json?t=' + Date.now());
                 const data = await res.json();
                 const newsList = document.getElementById('news-list');
@@ -37,8 +37,12 @@
                 data.news.reverse().forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'news-card';
+                    
+                    const imgHTML = item.image ? `<img src="${item.image}" alt="haber görseli">` : '';
+
                     card.innerHTML = `
                         <h2>${item.title}</h2>
+                        ${imgHTML}
                         <p>${item.content}</p>
                         <div class="date">${item.date}</div>
                     `;
@@ -49,7 +53,7 @@
             }
         }
         loadNews();
-        setInterval(loadNews, 5000); // 5 saniyede bir günceller
+        setInterval(loadNews, 5000);
     </script>
 </body>
 </html>
