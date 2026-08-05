@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Banner</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+        .ticker-wrap {
+            position: fixed;
+            bottom: 30px;
+            left: 5%;
+            width: 90%;
+            height: 60px;
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 8px solid #ef4444;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: sans-serif;
+            border-radius: 4px;
+        }
+        .badge {
+            background: #ef4444;
+            color: #fff;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-weight: 900;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+        .text-container {
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            padding-left: 15px;
+        }
+        .text-content {
+            display: inline-block;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            animation: marquee 12s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticker-wrap">
+        <div class="badge">SON DAKİKA</div>
+        <div class="text-container">
+            <div class="text-content" id="ticker-text">haber bekleniyor...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const tickerText = document.getElementById('ticker-text');
+        onValue(ref(db, 'obs_ticker/text'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                tickerText.innerText = data;
+            }
+        });
+    </script>
+</body>
+</html>
